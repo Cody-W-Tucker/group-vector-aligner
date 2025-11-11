@@ -8,6 +8,7 @@ import { InterviewResponses, QUESTIONS } from '@/lib/interview'
 import { createClient } from '@/lib/supabase/client'
 
 const STORAGE_KEY = 'interview_responses'
+const DEFAULT_GROUP_ID = "default-group";
 
 export default function InterviewSubmitPage() {
   const router = useRouter()
@@ -50,10 +51,7 @@ export default function InterviewSubmitPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const groupId = localStorage.getItem('selected_group')
-      if (!groupId) throw new Error('No group selected')
-
-      console.log('Submitting interview for user:', user.id, 'group:', groupId, 'responses keys:', Object.keys(responses))
+      console.log('Submitting interview for user:', user.id, 'group:', DEFAULT_GROUP_ID, 'responses keys:', Object.keys(responses))
 
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: user.id,
@@ -69,7 +67,7 @@ export default function InterviewSubmitPage() {
         .from('interview_responses')
         .upsert({
           user_id: user.id,
-          group_id: groupId,
+          group_id: DEFAULT_GROUP_ID,
           responses: responses,
           status: 'completed',
           completed_at: new Date().toISOString(),
@@ -85,7 +83,7 @@ export default function InterviewSubmitPage() {
       const { error: memberError } = await supabase
         .from('group_members')
         .upsert({
-          group_id: groupId,
+          group_id: DEFAULT_GROUP_ID,
           user_id: user.id,
           role: 'member'
         })

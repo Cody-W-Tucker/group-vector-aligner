@@ -1,16 +1,16 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from '@/lib/supabase/client'
 
+const DEFAULT_GROUP_ID = "default-group";
+
 export default function InterviewStartPageClient() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const supabase = createClient()
-  const groupId = searchParams.get('group')
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,19 +21,11 @@ export default function InterviewStartPageClient() {
   }, [router, supabase])
 
   useEffect(() => {
-    if (!groupId) {
-      router.push('/dashboard')
-      return
-    }
-    localStorage.setItem('selected_group', groupId)
-  }, [groupId, router])
+    localStorage.setItem('selected_group', DEFAULT_GROUP_ID)
+  }, [])
 
   const handleStart = () => {
     router.push('/interview/questions/1')
-  }
-
-  if (!groupId) {
-    return <div>Redirecting to dashboard...</div>
   }
 
   return (

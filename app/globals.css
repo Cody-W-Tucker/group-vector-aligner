@@ -66,3 +66,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .note-card {
+    @apply relative rounded-sm border border-border/70 bg-zinc-200 p-4 text-sm leading-relaxed text-zinc-900 shadow-inner dark:bg-zinc-700 dark:text-zinc-50;
+  }
+
+  .note-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0.35rem;
+    right: 0.35rem;
+    border-width: 0 0 12px 12px;
+    border-style: solid;
+    border-color: transparent transparent rgba(113, 113, 122, 0.5) transparent;
+    pointer-events: none;
+  }
+
+  .dark .note-card::after {
+    border-color: transparent transparent rgba(161, 161, 170, 0.6) transparent;
+  }
+}
