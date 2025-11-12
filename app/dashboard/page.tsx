@@ -58,22 +58,27 @@ export default async function DashboardPage() {
     .limit(1)
     .maybeSingle();
 
-  let alignmentSummary = null;
-  if (latestSummaryRow?.summary_content) {
-    try {
-      alignmentSummary = JSON.parse(latestSummaryRow.summary_content);
-    } catch (error) {
-      console.error('Error parsing summary_content:', error);
-    }
-  }
+  	let alignmentSummary = null;
+  	if (latestSummaryRow?.summary_content) {
+    	try {
+      	alignmentSummary = JSON.parse(latestSummaryRow.summary_content);
+    	} catch (error) {
+      	console.error('Error parsing summary_content:', error);
+    	}
+  	}
 
- 	const { data: interviews } = await supabase
- 		.from('interview_responses')
- 		.select('id, user_id, responses, completed_at')
- 		.eq('group_id', DEFAULT_GROUP_ID)
- 		.eq('status', 'completed');
+  	let query = supabase
+  		.from('interview_responses')
+  		.select('id, user_id, responses, completed_at, status')
+  		.eq('group_id', DEFAULT_GROUP_ID);
+  	if (!alignmentSummary) {
+  		query = query.in('status', ['completed', 'reconciled']);
+  	} else {
+  		query = query.eq('status', 'completed');
+  	}
+  	const { data: interviews } = await query;
 
- 	const unprocessedCount = interviews?.length || 0;
+  	const unprocessedCount = interviews?.filter(i => i.status === 'completed').length || 0;
 
  	const { data: allResponded } = await supabase
  		.from('interview_responses')

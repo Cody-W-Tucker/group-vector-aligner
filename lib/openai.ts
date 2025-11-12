@@ -37,12 +37,19 @@ export async function generateGroupAlignmentSummary(
     throw new Error('No interviews provided')
   }
 
+  // Query profiles for names
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, email, full_name')
+    .in('id', interviews.map(i => i.user_id))
+  const userIdToProfile = Object.fromEntries(profiles?.map(p => [p.id, { email: p.email, full_name: p.full_name }]) || [])
+
   // Query previous summary if groupId provided
   let previousSummary: AlignmentSummary | null = null
   if (groupId) {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
       const { data, error } = await supabase
         .from('dashboard_summaries')
         .select('summary_content')
@@ -69,8 +76,17 @@ export async function generateGroupAlignmentSummary(
 
   const interviewSummaries = interviews.map((interview, index) => {
     const responses = interview.responses
+    const profile = userIdToProfile[interview.user_id]
+    let name = `Contributor ${index + 1}`
+    if (profile) {
+      if (profile.full_name && !profile.full_name.includes('@')) {
+        name = profile.full_name
+      } else if (profile.email) {
+        name = profile.email.split('@')[0]
+      }
+    }
     return `
-Contributor ${index + 1} (Completed: ${new Date(interview.completed_at).toLocaleDateString()}):
+Contributor ${name} (Completed: ${new Date(interview.completed_at).toLocaleDateString()}):
 - Purpose: ${responses.purpose}
 - Sponsorship: ${responses.sponsorship.willing ? `Yes - ${responses.sponsorship.how || 'No details'}` : 'No'}
 - Resources: ${responses.resources}
