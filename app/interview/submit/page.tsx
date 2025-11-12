@@ -8,7 +8,7 @@ import { InterviewResponses, QUESTIONS } from '@/lib/interview'
 import { createClient } from '@/lib/supabase/client'
 
 const STORAGE_KEY = 'interview_responses'
-const DEFAULT_GROUP_ID = "default-group";
+const DEFAULT_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000";
 
 export default function InterviewSubmitPage() {
   const router = useRouter()
@@ -53,15 +53,25 @@ export default function InterviewSubmitPage() {
 
       console.log('Submitting interview for user:', user.id, 'group:', DEFAULT_GROUP_ID, 'responses keys:', Object.keys(responses))
 
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: user.id,
-        email: user.email || '',
-        full_name: user.user_metadata?.full_name || user.email || '',
-      })
-      if (profileError) {
-        console.error('Profile upsert error:', profileError)
-        return
-      }
+       const { error: profileError } = await supabase.from('profiles').upsert({
+         id: user.id,
+         email: user.email || '',
+         full_name: user.user_metadata?.full_name || user.email || '',
+       })
+       if (profileError) {
+         console.error('Profile upsert error:', profileError)
+         return
+       }
+
+       const { error: groupError } = await supabase.from('groups').upsert({
+         id: DEFAULT_GROUP_ID,
+         name: 'Default Group',
+         description: 'The default group for group alignment interviews',
+       })
+       if (groupError) {
+         console.error('Group upsert error:', groupError)
+         return
+       }
 
       const { error: interviewError } = await supabase
         .from('interview_responses')

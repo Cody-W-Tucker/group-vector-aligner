@@ -1,9 +1,16 @@
 import OpenAI from 'openai'
 import { InterviewResponses } from './interview'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+let openai: OpenAI | null = null
+
+function getOpenAI() {
+  if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) throw new Error('Missing OPENAI_API_KEY. Please set the OPENAI_API_KEY environment variable.')
+    openai = new OpenAI({ apiKey })
+  }
+  return openai
+}
 
 export interface AlignmentSummary {
   purpose: string
@@ -23,10 +30,41 @@ export async function generateGroupAlignmentSummary(
     user_id: string
     responses: InterviewResponses
     completed_at: string
-  }>
+  }>,
+  groupId?: string
 ): Promise<AlignmentSummary> {
   if (!interviews.length) {
     throw new Error('No interviews provided')
+  }
+
+  // Query previous summary if groupId provided
+  let previousSummary: AlignmentSummary | null = null
+  if (groupId) {
+    try {
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      const { data, error } = await supabase
+        .from('dashboard_summaries')
+        .select('summary_content')
+        .eq('group_id', groupId)
+        .eq('section', 'full_summary')
+        .order('generated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) {
+        console.error('Error querying previous summary:', error)
+      } else {
+        try {
+          previousSummary = data?.summary_content ? JSON.parse(data.summary_content) : null
+          console.log('Found previous summary:', !!previousSummary)
+        } catch (parseError) {
+          console.error('Error parsing previous summary JSON:', parseError)
+          previousSummary = null
+        }
+      }
+    } catch (error) {
+      console.error('Exception querying previous summary:', error)
+    }
   }
 
   const interviewSummaries = interviews.map((interview, index) => {
@@ -45,10 +83,25 @@ Contributor ${index + 1} (Completed: ${new Date(interview.completed_at).toLocale
 `
   }).join('\n')
 
+  const previousContext = previousSummary ? `
+Previous Analysis (for context and continuity):
+- Purpose: ${previousSummary.purpose}
+- Sponsorship: ${previousSummary.sponsorship}
+- Resources: ${previousSummary.resources}
+- Leadership: ${previousSummary.leadership}
+- Deliverables: ${previousSummary.deliverables}
+- Plan: ${previousSummary.plan}
+- Change: ${previousSummary.change}
+- Investment: ${previousSummary.investment}
+- Benefits: ${previousSummary.benefits}
+- Overall Alignment: ${previousSummary.overallAlignment}
+
+` : ''
+
   const prompt = `
 You are an expert facilitator synthesizing group alignment insights from ${interviews.length} contributors.
 
-Based on the following interview responses, create a unified alignment summary that captures the collective vision, commitments, and action plan.
+${previousContext}Based on the ${previousSummary ? 'previous analysis and ' : ''}following new interview responses, create an updated unified alignment summary that captures the collective vision, commitments, and action plan. ${previousSummary ? 'Integrate the new insights with the previous analysis, maintaining continuity while updating where new information changes the understanding.' : ''}
 
 ${interviewSummaries}
 
@@ -68,7 +121,7 @@ Please provide a structured summary with these sections:
 Keep each section concise (2-4 sentences) but comprehensive. Use collaborative language that reflects the group's collective wisdom.`
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
