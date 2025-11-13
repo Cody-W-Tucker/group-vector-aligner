@@ -63,15 +63,7 @@ export default function InterviewSubmitPage() {
          return
        }
 
-       const { error: groupError } = await supabase.from('groups').upsert({
-         id: DEFAULT_GROUP_ID,
-         name: 'Default Group',
-         description: 'The default group for group alignment interviews',
-       })
-       if (groupError) {
-         console.error('Group upsert error:', groupError)
-         return
-       }
+
 
       const { error: interviewError } = await supabase
         .from('interview_responses')
@@ -112,8 +104,8 @@ export default function InterviewSubmitPage() {
     }
   }
 
-  const handleBack = () => {
-    router.push('/interview/review')
+  const handleEdit = () => {
+    router.push('/interview/edit')
   }
 
   if (!responses) {
@@ -153,14 +145,14 @@ export default function InterviewSubmitPage() {
             ))}
           </div>
 
-          <div className="flex justify-between pt-4">
-            <Button variant="outline" onClick={handleBack} disabled={loading}>
-              Back to Review
-            </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Submitting...' : 'Confirm Submit'}
-            </Button>
-          </div>
+           <div className="flex justify-between pt-4">
+             <Button variant="outline" onClick={handleEdit} disabled={loading}>
+               Edit Answers
+             </Button>
+             <Button onClick={handleSubmit} disabled={loading}>
+               {loading ? 'Submitting...' : 'Confirm Submit'}
+             </Button>
+           </div>
         </CardContent>
       </Card>
     </div>

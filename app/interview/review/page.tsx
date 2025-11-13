@@ -13,12 +13,7 @@ export default function InterviewReviewPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) router.push('/auth/login')
-    }
-    checkAuth()
+    router.replace('/interview/submit')
   }, [router])
 
   const defaultResponses: InterviewResponses = {

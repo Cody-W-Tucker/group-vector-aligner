@@ -40,7 +40,16 @@ export default async function DashboardPage() {
 		.eq('user_id', data.claims.sub)
 		.single();
 
-	const isMember = !!membership;
+  const isMember = !!membership;
+
+  const { data: userInterview } = await supabase
+    .from('interview_responses')
+    .select('status')
+    .eq('group_id', DEFAULT_GROUP_ID)
+    .eq('user_id', data.claims.sub)
+    .maybeSingle();
+
+  const userHasCompleted = userInterview?.status === 'completed';
 
   const { data: group } = await supabase
     .from('groups')
@@ -48,37 +57,32 @@ export default async function DashboardPage() {
     .eq('id', DEFAULT_GROUP_ID)
     .single();
 
-  // Load latest summary from dashboard_summaries
-  const { data: latestSummaryRow } = await supabase
-    .from('dashboard_summaries')
-    .select('summary_content')
-    .eq('group_id', DEFAULT_GROUP_ID)
-    .eq('section', 'full_summary')
-    .order('generated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+   // Load latest summary from dashboard_summaries
+   const { data: latestSummaryRow } = await supabase
+     .from('dashboard_summaries')
+     .select('summary_content')
+     .eq('group_id', DEFAULT_GROUP_ID)
+     .eq('section', 'full_summary')
+     .order('generated_at', { ascending: false })
+     .limit(1)
+     .maybeSingle();
 
-  	let alignmentSummary = null;
-  	if (latestSummaryRow?.summary_content) {
-    	try {
-      	alignmentSummary = JSON.parse(latestSummaryRow.summary_content);
-    	} catch (error) {
-      	console.error('Error parsing summary_content:', error);
-    	}
-  	}
+   	let alignmentSummary = null;
+   	if (latestSummaryRow?.summary_content) {
+     	try {
+       	alignmentSummary = JSON.parse(latestSummaryRow.summary_content);
+     	} catch (error) {
+       	console.error('Error parsing summary_content:', error);
+     	}
+   	}
 
-  	let query = supabase
-  		.from('interview_responses')
-  		.select('id, user_id, responses, completed_at, status')
-  		.eq('group_id', DEFAULT_GROUP_ID);
-  	if (!alignmentSummary) {
-  		query = query.in('status', ['completed', 'reconciled']);
-  	} else {
-  		query = query.eq('status', 'completed');
-  	}
-  	const { data: interviews } = await query;
+   	const { data: interviews } = await supabase
+   		.from('interview_responses')
+   		.select('id, user_id, responses, completed_at, status')
+   		.eq('group_id', DEFAULT_GROUP_ID)
+   		.eq('status', 'completed');
 
-  	const unprocessedCount = interviews?.filter(i => i.status === 'completed').length || 0;
+   	const unprocessedCount = interviews?.length || 0;
 
  	const { data: allResponded } = await supabase
  		.from('interview_responses')
@@ -118,6 +122,7 @@ export default async function DashboardPage() {
             groupId={DEFAULT_GROUP_ID}
             interviewCount={interviewCount}
             unprocessedCount={unprocessedCount}
+            userHasCompleted={userHasCompleted}
           />
 		</div>
 	);

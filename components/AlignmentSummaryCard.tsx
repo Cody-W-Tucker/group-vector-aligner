@@ -12,6 +12,7 @@ interface Props {
   groupId: string
   interviewCount: number
   unprocessedCount: number
+  userHasCompleted: boolean
 }
 
 function SummaryNote({ title, content }: { title: string; content?: string | null }) {
@@ -27,7 +28,7 @@ function SummaryNote({ title, content }: { title: string; content?: string | nul
   )
 }
 
-export default function AlignmentSummaryCard({ summary, interviews, groupId, interviewCount, unprocessedCount }: Props) {
+export default function AlignmentSummaryCard({ summary, interviews, groupId, interviewCount, unprocessedCount, userHasCompleted }: Props) {
   const [generating, setGenerating] = useState(false)
   const [localSummary, setLocalSummary] = useState<AlignmentSummary | null>(summary)
   const [localUnprocessedCount, setLocalUnprocessedCount] = useState(unprocessedCount)
@@ -38,7 +39,7 @@ export default function AlignmentSummaryCard({ summary, interviews, groupId, int
     ? `AI-synthesized insights from ${interviewCount} contributors`
     : "No analysis generated yet."
 
-  	const canGenerate = localUnprocessedCount > 0 || (!hasSummary && interviews.length > 0)
+   	const canGenerate = userHasCompleted && (localUnprocessedCount > 0 || !hasSummary)
   const summaryBannerText = canGenerate
     ? hasSummary
       ? `${localUnprocessedCount} new response${localUnprocessedCount > 1 ? 's' : ''} available. Click 'Update Analysis' to include them.`

@@ -68,7 +68,7 @@ export default function InterviewQuestionPage() {
     if (step < QUESTIONS.length - 1) {
       router.push(`/interview/questions/${step + 2}`)
     } else {
-      router.push('/interview/review')
+      router.push('/interview/submit')
     }
   }
 
@@ -171,9 +171,9 @@ export default function InterviewQuestionPage() {
               >
                 Previous
               </Button>
-              <Button onClick={handleNext}>
-                {step === QUESTIONS.length - 1 ? 'Review' : 'Next'}
-              </Button>
+               <Button onClick={handleNext}>
+                 {step === QUESTIONS.length - 1 ? 'Submit' : 'Next'}
+               </Button>
             </div>
           </CardContent>
         </Card>

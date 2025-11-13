@@ -61,7 +61,7 @@ export default function InterviewEditPage() {
   }
 
   const handleBack = () => {
-    router.push('/interview/review')
+    router.push('/interview/submit')
   }
 
   return (
@@ -155,7 +155,7 @@ export default function InterviewEditPage() {
 
         <div className="flex justify-start mt-8">
           <Button variant="outline" onClick={handleBack}>
-            Back to Review
+            Back to Submit
           </Button>
         </div>
       </div>
