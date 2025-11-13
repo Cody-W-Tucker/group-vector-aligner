@@ -1,3 +1,11 @@
+export interface InterviewRow {
+  id: string;
+  user_id: string;
+  responses: InterviewResponses;
+  completed_at: string;
+  status: string;
+}
+
 export interface InterviewResponses {
   purpose: string;
   sponsorship: { willing: boolean; how?: string; type?: 'investment' | 'work' | 'connections' };

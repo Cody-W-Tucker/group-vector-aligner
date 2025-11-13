@@ -37,7 +37,7 @@ export default function InterviewSubmitPage() {
       } else {
         router.push('/dashboard')
       }
-    } catch (error) {
+    } catch {
       console.warn('Failed to load responses')
       router.push('/dashboard')
     }
@@ -82,16 +82,26 @@ export default function InterviewSubmitPage() {
 
       /* console.log('Interview inserted successfully') */
 
+      // Check if group has existing members
+      const { data: existingMembers } = await supabase
+        .from('group_members')
+        .select('id')
+        .eq('group_id', DEFAULT_GROUP_ID)
+        .limit(1)
+
+      const role = existingMembers && existingMembers.length > 0 ? 'member' : 'admin'
+
       const { error: memberError } = await supabase
         .from('group_members')
         .upsert({
           group_id: DEFAULT_GROUP_ID,
           user_id: user.id,
-          role: 'member'
+          role: role
         })
 
       if (memberError) {
         console.error('Member upsert error:', JSON.stringify(memberError, null, 2))
+        throw new Error('Failed to join group. Please try again.')
       }
 
       localStorage.removeItem(STORAGE_KEY)
@@ -118,7 +128,7 @@ export default function InterviewSubmitPage() {
         <CardHeader>
           <CardTitle>Confirm Submission</CardTitle>
           <CardDescription>
-            You're about to submit your interview responses. This will add your input to the group dashboard.
+             You&apos;re about to submit your interview responses. This will add your input to the group dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

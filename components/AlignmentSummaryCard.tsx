@@ -4,15 +4,18 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlignmentSummary } from "@/lib/openai"
+import { InterviewRow } from "@/lib/interview"
 import { generateAlignmentSummary } from '@/lib/actions'
 
 interface Props {
   summary: AlignmentSummary | null
-  interviews: any[]
+  interviews: InterviewRow[]
   groupId: string
   interviewCount: number
   unprocessedCount: number
   userHasCompleted: boolean
+  userRole: string
+  allResponded: boolean
 }
 
 function SummaryNote({ title, content }: { title: string; content?: string | null }) {
@@ -28,23 +31,23 @@ function SummaryNote({ title, content }: { title: string; content?: string | nul
   )
 }
 
-export default function AlignmentSummaryCard({ summary, interviews, groupId, interviewCount, unprocessedCount, userHasCompleted }: Props) {
-  const [generating, setGenerating] = useState(false)
-  const [localSummary, setLocalSummary] = useState<AlignmentSummary | null>(summary)
-  const [localUnprocessedCount, setLocalUnprocessedCount] = useState(unprocessedCount)
+export default function AlignmentSummaryCard({ summary, interviews, groupId, interviewCount, unprocessedCount, userHasCompleted, userRole, allResponded }: Props) {
+   	const [generating, setGenerating] = useState(false)
+   	const [localSummary, setLocalSummary] = useState<AlignmentSummary | null>(summary)
+   	const [localUnprocessedCount, setLocalUnprocessedCount] = useState(unprocessedCount)
 
-  const hasSummary = !!localSummary
+   	const hasSummary = !!localSummary
 
   const summaryDescription = hasSummary
     ? `AI-synthesized insights from ${interviewCount} contributors`
     : "No analysis generated yet."
 
-   	const canGenerate = userHasCompleted && (localUnprocessedCount > 0 || !hasSummary)
-  const summaryBannerText = canGenerate
-    ? hasSummary
-      ? `${localUnprocessedCount} new response${localUnprocessedCount > 1 ? 's' : ''} available. Click 'Update Analysis' to include them.`
-      : "Click 'Generate Analysis' to synthesize insights from contributors."
-    : null
+    	const canGenerate = userHasCompleted && userRole === 'admin' && (localUnprocessedCount > 0 || !hasSummary)
+  	const summaryBannerText = canGenerate
+    	? hasSummary
+      	? `${localUnprocessedCount} new response${localUnprocessedCount > 1 ? 's' : ''} available. Click 'Update Analysis' to include them.`
+      	: "Click 'Generate Analysis' to synthesize insights from contributors."
+    	: null
 
   const emptySummary: AlignmentSummary = {
     purpose: "",

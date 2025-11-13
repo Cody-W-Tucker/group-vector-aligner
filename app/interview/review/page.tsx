@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { InterviewResponses, QUESTIONS } from '@/lib/interview'
-import { createClient } from '@/lib/supabase/client'
 
 const STORAGE_KEY = 'interview_responses'
 
@@ -37,7 +36,7 @@ export default function InterviewReviewPage() {
         const parsed = JSON.parse(stored)
         setResponses({ ...defaultResponses, ...parsed })
       }
-    } catch (error) {
+    } catch {
       console.warn('Failed to load interview responses from localStorage')
     }
   }, [])

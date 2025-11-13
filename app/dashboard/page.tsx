@@ -7,23 +7,9 @@ import AlignmentSummaryCard from "@/components/AlignmentSummaryCard";
 
 const DEFAULT_GROUP_ID = "550e8400-e29b-41d4-a716-446655440000";
 
-interface SummaryNoteProps {
-	title: string;
-	content?: string | null;
-}
 
-function SummaryNote({ title, content }: SummaryNoteProps) {
-	const resolvedContent = content?.trim() ? content : "Awaiting insights.";
 
-	return (
-		<div className="space-y-2">
-			<p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{title}</p>
-			<div className="note-card min-h-[104px] flex items-start">
-				<p className="whitespace-pre-line leading-relaxed">{resolvedContent}</p>
-			</div>
-		</div>
-	);
-}
+
 
 export default async function DashboardPage() {
 	const supabase = await createClient();
@@ -51,11 +37,11 @@ export default async function DashboardPage() {
 
   const userHasCompleted = userInterview?.status === 'completed';
 
-  const { data: group } = await supabase
-    .from('groups')
-    .select('name, description')
-    .eq('id', DEFAULT_GROUP_ID)
-    .single();
+  	const { data: group } = await supabase
+  		.from('groups')
+  		.select('name, description')
+  		.eq('id', DEFAULT_GROUP_ID)
+  		.maybeSingle();
 
    // Load latest summary from dashboard_summaries
    const { data: latestSummaryRow } = await supabase
@@ -84,23 +70,33 @@ export default async function DashboardPage() {
 
    	const unprocessedCount = interviews?.length || 0;
 
- 	const { data: allResponded } = await supabase
- 		.from('interview_responses')
- 		.select('id')
- 		.eq('group_id', DEFAULT_GROUP_ID)
- 		.in('status', ['completed', 'reconciled']);
+  	const { data: allResponded } = await supabase
+  		.from('interview_responses')
+  		.select('id')
+  		.eq('group_id', DEFAULT_GROUP_ID)
+  		.in('status', ['completed', 'reconciled']);
 
- 	const interviewCount = allResponded?.length || 0;
+  	const interviewCount = allResponded?.length || 0;
+
+  	const { data: members } = await supabase
+  		.from('group_members')
+  		.select('id')
+  		.eq('group_id', DEFAULT_GROUP_ID);
+
+  	const memberCount = members?.length || 0;
+  	const allRespondedFlag = memberCount > 0 && interviewCount === memberCount;
+
+
 
 	return (
 		<div className="flex-1 w-full flex flex-col gap-12">
 
 			<div className="grid gap-6 md:grid-cols-2 items-start">
-				<div className="flex flex-col">
-					<h1 className="text-3xl font-bold">{group?.name || "Vector Aligner"}</h1>
-					{group?.description && (
-						<p className="text-muted-foreground mt-2">{group.description}</p>
-					)}
+ 			<div className="flex flex-col">
+ 					<h1 className="text-3xl font-bold">{group?.name || "Group Alignment"}</h1>
+ 					{group?.description && (
+ 						<p className="text-muted-foreground mt-2">{group.description}</p>
+ 					)}
 				</div>
 				<div className="flex flex-col items-end gap-2">
 					<Badge variant="secondary" className="text-sm">{interviewCount} Contributors</Badge>
@@ -123,6 +119,8 @@ export default async function DashboardPage() {
             interviewCount={interviewCount}
             unprocessedCount={unprocessedCount}
             userHasCompleted={userHasCompleted}
+            userRole={membership?.role || 'member'}
+            allResponded={allRespondedFlag}
           />
 		</div>
 	);
