@@ -35,7 +35,7 @@ export default async function DashboardPage() {
     .eq('user_id', data.claims.sub)
     .maybeSingle();
 
-  const userHasCompleted = userInterview?.status === 'completed';
+  const userHasCompleted = ['completed', 'reconciled'].includes(userInterview?.status);
 
   	const { data: group } = await supabase
   		.from('groups')
@@ -62,13 +62,15 @@ export default async function DashboardPage() {
      	}
    	}
 
-   	const { data: interviews } = await supabase
-   		.from('interview_responses')
-   		.select('id, user_id, responses, completed_at, status')
-   		.eq('group_id', DEFAULT_GROUP_ID)
-   		.eq('status', 'completed');
+    	const { data: interviews } = await supabase
+    		.from('interview_responses')
+    		.select('id, user_id, responses, completed_at, status')
+    		.eq('group_id', DEFAULT_GROUP_ID)
+    		.eq('status', 'completed');
 
-   	const unprocessedCount = interviews?.length || 0;
+
+
+    	const unprocessedCount = interviews?.length || 0;
 
   	const { data: allResponded } = await supabase
   		.from('interview_responses')

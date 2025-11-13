@@ -25,13 +25,14 @@ export async function generateAlignmentSummary(interviews: InterviewRow[], group
  	try {
  		const { error } = await supabase
  			.from('dashboard_summaries')
- 			.insert({
+ 			.upsert({
  				group_id: groupId,
  				user_id: user.id,
  				section: 'full_summary',
  				summary_content: JSON.stringify(summary),
  				source_responses: interviews,
- 			})
+ 				generated_at: new Date().toISOString(),
+ 			}, { onConflict: 'group_id,section,user_id' })
 		if (error) {
 			console.error('Error saving to dashboard_summaries:', error)
 			// Continue anyway - don't fail the whole operation
