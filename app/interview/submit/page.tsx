@@ -51,7 +51,7 @@ export default function InterviewSubmitPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      console.log('Submitting interview for user:', user.id, 'group:', DEFAULT_GROUP_ID, 'responses keys:', Object.keys(responses))
+      /* console.log('Submitting interview for user:', user.id, 'group:', DEFAULT_GROUP_ID, 'responses keys:', Object.keys(responses)) */
 
        const { error: profileError } = await supabase.from('profiles').upsert({
          id: user.id,
@@ -80,7 +80,7 @@ export default function InterviewSubmitPage() {
         throw interviewError
       }
 
-      console.log('Interview inserted successfully')
+      /* console.log('Interview inserted successfully') */
 
       const { error: memberError } = await supabase
         .from('group_members')
