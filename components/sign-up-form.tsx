@@ -59,10 +59,10 @@ export function SignUpForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
+				<CardHeader>
+					<CardTitle className="text-2xl">Sign up</CardTitle>
+					<CardDescription>Create your account to start aligning</CardDescription>
+				</CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">

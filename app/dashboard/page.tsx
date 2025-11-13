@@ -91,19 +91,17 @@ export default async function DashboardPage() {
 	return (
 		<div className="flex-1 w-full flex flex-col gap-12">
 
-			<div className="grid gap-6 md:grid-cols-2">
+			<div className="grid gap-6 md:grid-cols-2 items-start">
 				<div className="flex flex-col">
-					<h1 className="text-3xl font-bold">{group?.name || "Group Alignment Dashboard"}</h1>
+					<h1 className="text-3xl font-bold">{group?.name || "Vector Aligner"}</h1>
 					{group?.description && (
 						<p className="text-muted-foreground mt-2">{group.description}</p>
 					)}
 				</div>
-				<div className="flex justify-end items-center">
+				<div className="flex flex-col items-end gap-2">
 					<Badge variant="secondary" className="text-sm">{interviewCount} Contributors</Badge>
 					{isMember ? (
-						<p className="text-lg font-medium">
-							Status: ({membership.role})
-						</p>
+						<Badge variant="outline" className="text-sm">Member: {membership.role}</Badge>
 					) : (
 						<Button asChild className="max-w-sm">
 							<Link href={`/interview`}>

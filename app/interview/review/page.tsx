@@ -4,9 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { InterviewResponses, QUESTIONS } from '@/lib/interview'
 import { createClient } from '@/lib/supabase/client'
 
@@ -50,12 +47,7 @@ export default function InterviewReviewPage() {
     }
   }, [])
 
-  const updateResponse = (key: keyof InterviewResponses, value: any) => {
-    setResponses(prev => ({
-      ...prev,
-      [key]: value
-    }))
-  }
+
 
   const isComplete = () => {
     return QUESTIONS.every(q => {
@@ -79,17 +71,17 @@ export default function InterviewReviewPage() {
     }
   }
 
-  const handleBack = () => {
-    router.push(`/interview/questions/${QUESTIONS.length}`)
+  const handleEdit = () => {
+    router.push('/interview/edit')
   }
 
   return (
     <div className="flex-1 w-full flex flex-col gap-12 items-center">
       <div className="w-full max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">Review Your Responses</h1>
+          <h1 className="text-2xl font-bold">Review Your Answers</h1>
           <p className="text-muted-foreground">
-            Review and edit your answers below. All fields are editable.
+            Review your answers below. Click Edit to make changes.
           </p>
         </div>
 
@@ -103,69 +95,23 @@ export default function InterviewReviewPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {q.type === 'text' && (
-                  <Textarea
-                    placeholder="Your answer..."
-                    value={responses[q.key] as string}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                      updateResponse(q.key, e.target.value)
-                    }
-                    rows={3}
-                  />
+                  <div className="text-sm text-muted-foreground whitespace-pre-line">
+                    {responses[q.key] as string || 'No answer provided'}
+                  </div>
                 )}
 
                 {q.type === 'choice' && (
-                  <>
-                    <RadioGroup
-                      value={(responses[q.key] as any)?.willing ? 'yes' : 'no'}
-                      onValueChange={(value) => {
-                        const willing = value === 'yes'
-                        const current = responses[q.key] as any
-                        updateResponse(q.key, { ...current, willing })
-                      }}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value={`yes-${q.key}`} id={`yes-${q.key}`} />
-                        <Label htmlFor={`yes-${q.key}`}>Yes</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value={`no-${q.key}`} id={`no-${q.key}`} />
-                        <Label htmlFor={`no-${q.key}`}>No</Label>
-                      </div>
-                    </RadioGroup>
-
-                    {(responses[q.key] as any)?.willing && (
-                      <>
-                        {q.choices && (
-                          <RadioGroup
-                            value={(responses[q.key] as any)?.type || ''}
-                            onValueChange={(value) => {
-                              const current = responses[q.key] as any
-                              updateResponse(q.key, { ...current, type: value })
-                            }}
-                          >
-                            {q.choices.map((choice) => (
-                              <div key={choice} className="flex items-center space-x-2">
-                                <RadioGroupItem value={choice} id={`${q.key}-${choice}`} />
-                                <Label htmlFor={`${q.key}-${choice}`}>{choice}</Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
-                        )}
-
-                        <Label htmlFor={`${q.key}-how`}>{q.subQuestion}</Label>
-                        <Textarea
-                          id={`${q.key}-how`}
-                          placeholder="Details..."
-                          value={(responses[q.key] as any)?.how || ''}
-                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            const current = responses[q.key] as any
-                            updateResponse(q.key, { ...current, how: e.target.value })
-                          }}
-                          rows={2}
-                        />
-                      </>
+                  <div className="text-sm text-muted-foreground">
+                    {(responses[q.key] as any)?.willing ? 'Yes' : 'No'}
+                    {(responses[q.key] as any)?.willing && q.choices && (
+                      <> - {(responses[q.key] as any)?.type}</>
                     )}
-                  </>
+                    {(responses[q.key] as any)?.how && (
+                      <div className="mt-2 whitespace-pre-line">
+                        {q.subQuestion}: {(responses[q.key] as any)?.how}
+                      </div>
+                    )}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -173,8 +119,8 @@ export default function InterviewReviewPage() {
         </div>
 
         <div className="flex justify-between mt-8">
-          <Button variant="outline" onClick={handleBack}>
-            Back to Questions
+          <Button variant="outline" onClick={handleEdit}>
+            Edit Answers
           </Button>
           <Button onClick={handleSubmit} disabled={!isComplete()}>
             Submit Interview

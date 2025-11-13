@@ -13,30 +13,31 @@ export interface InterviewResponses {
 export const QUESTIONS = [
   {
     key: 'purpose' as keyof InterviewResponses,
-    question: 'Why do you want to create this initiative?',
+    question: 'What do you hope to gain from this group?',
     type: 'text' as const,
   },
   {
     key: 'sponsorship' as keyof InterviewResponses,
-    question: 'Are you open to sponsoring this initiative?',
+    question: 'Do you see yourself becoming a contributing member?',
     type: 'choice' as const,
-    subQuestion: 'If yes, how would you like to sponsor?',
+    subQuestion: 'If yes, how would you like to contribute?',
     choices: ['investment', 'work', 'connections'],
   },
   {
     key: 'resources' as keyof InterviewResponses,
-    question: 'Are there resources you have or are aware of that fit with this initiative that you\'re open to sharing?',
-    type: 'text' as const,
+    question: 'Are there resources that fit with this initiative that you\'re open to sharing?',
+    type: 'choice' as const,
+    subQuestion: 'If yes, what are they',
   },
   {
     key: 'leadership' as keyof InterviewResponses,
     question: 'Are you open to guiding the initiative in a leadership capacity?',
     type: 'choice' as const,
-    subQuestion: 'If yes, how would you like to guide?',
+    subQuestion: 'If yes, what area of responsibilities fit your skills?',
   },
   {
     key: 'deliverables' as keyof InterviewResponses,
-    question: 'What are the important deliverables/assets that are important to this initiative in your mind?',
+    question: 'If successful, which deliverables/assets excite you most about creating together?',
     type: 'text' as const,
   },
   {
@@ -51,7 +52,7 @@ export const QUESTIONS = [
   },
   {
     key: 'investment' as keyof InterviewResponses,
-    question: 'What investments outside of what you mentioned here will we need?',
+    question: 'What investments outside of what you mentioned are needed to complete?',
     type: 'text' as const,
   },
   {
