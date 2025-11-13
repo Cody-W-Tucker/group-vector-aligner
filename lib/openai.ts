@@ -138,7 +138,7 @@ Keep each section concise (2-4 sentences) but comprehensive. Use collaborative l
 
 	try {
 		const completion = await getOpenAI().chat.completions.create({
-			model: 'gpt-4o-mini',
+			model: 'gpt-5-mini-2025-08-07',
 			messages: [
 				{
 					role: 'system',
