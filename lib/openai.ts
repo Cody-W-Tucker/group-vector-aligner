@@ -99,7 +99,7 @@ Contributor ${name} (Completed: ${new Date(interview.completed_at).toLocaleDateS
 `
 	}).join('\n')
 
-	const previousContext = previousSummary ? `
+ 	const previousContext = previousSummary ? `
 Previous Analysis (for context and continuity):
 - Purpose: ${previousSummary.purpose}
 - Sponsorship: ${previousSummary.sponsorship}
@@ -112,29 +112,47 @@ Previous Analysis (for context and continuity):
 - Benefits: ${previousSummary.benefits}
 - Overall Alignment: ${previousSummary.overallAlignment}
 
-` : ''
+ ` : ''
 
-	const prompt = `
+	const jsonSchema = {
+		type: 'object',
+		properties: {
+			purpose: { type: 'string' },
+			sponsorship: { type: 'string' },
+			resources: { type: 'string' },
+			leadership: { type: 'string' },
+			deliverables: { type: 'string' },
+			plan: { type: 'string' },
+			change: { type: 'string' },
+			investment: { type: 'string' },
+			benefits: { type: 'string' },
+			overallAlignment: { type: 'string' },
+		},
+		required: ['purpose', 'sponsorship', 'resources', 'leadership', 'deliverables', 'plan', 'change', 'investment', 'benefits', 'overallAlignment'],
+		additionalProperties: false,
+	}
+
+ 	const prompt = `
 You are an expert facilitator synthesizing group alignment insights from ${interviews.length} contributors.
 
 ${previousContext}Based on the ${previousSummary ? 'previous analysis and ' : ''}following new interview responses, create an updated unified alignment summary that captures the collective vision, commitments, and action plan. ${previousSummary ? 'Integrate the new insights with the previous analysis, maintaining continuity while updating where new information changes the understanding.' : ''}
 
 ${interviewSummaries}
 
-Please provide a structured summary with these sections:
+Please provide a structured summary with these sections, each containing concise (2-4 sentences) but comprehensive content:
 
-1. **Purpose** - Unified vision/mission statement
-2. **Sponsorship** - Collective sponsorship commitments
-3. **Resources** - Available and needed resources
-4. **Leadership** - Leadership structure and commitments
-5. **Deliverables** - Key outputs and milestones
-6. **Plan** - High-level action plan
-7. **Change** - Change management approach
-8. **Investment** - Required investments and funding
-9. **Benefits** - Expected value and outcomes
-10. **Overall Alignment** - Assessment of group readiness and next steps
+- Purpose: Unified vision/mission statement
+- Sponsorship: Collective sponsorship commitments
+- Resources: Available and needed resources
+- Leadership: Leadership structure and commitments
+- Deliverables: Key outputs and milestones
+- Plan: High-level action plan
+- Change: Change management approach
+- Investment: Required investments and funding
+- Benefits: Expected value and outcomes
+- Overall Alignment: Assessment of group readiness and next steps
 
-Keep each section concise (2-4 sentences) but comprehensive. Use collaborative language that reflects the group's collective wisdom.`
+Use collaborative language that reflects the group's collective wisdom.`
 
 	try {
 		const completion = await getOpenAI().chat.completions.create({
@@ -149,8 +167,14 @@ Keep each section concise (2-4 sentences) but comprehensive. Use collaborative l
 					content: prompt
 				}
 			],
-			temperature: 0.7,
-			max_tokens: 2000,
+			response_format: {
+				type: 'json_schema',
+				json_schema: {
+					name: 'alignment_summary',
+					schema: jsonSchema,
+					strict: true,
+				},
+			},
 		})
 
 		const content = completion.choices[0]?.message?.content
@@ -158,67 +182,9 @@ Keep each section concise (2-4 sentences) but comprehensive. Use collaborative l
 			throw new Error('No response from OpenAI')
 		}
 
-		// Parse the response into structured format
-		const lines = content.split('\n')
-		const summary: Partial<AlignmentSummary> = {}
-
-		let currentSection = ''
-		let currentContent = ''
-
-		for (const line of lines) {
-			const trimmed = line.trim()
-
-			if (trimmed.includes('**Purpose**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'purpose'
-				currentContent = ''
-			} else if (trimmed.includes('**Sponsorship**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'sponsorship'
-				currentContent = ''
-			} else if (trimmed.includes('**Resources**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'resources'
-				currentContent = ''
-			} else if (trimmed.includes('**Leadership**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'leadership'
-				currentContent = ''
-			} else if (trimmed.includes('**Deliverables**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'deliverables'
-				currentContent = ''
-			} else if (trimmed.includes('**Plan**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'plan'
-				currentContent = ''
-			} else if (trimmed.includes('**Change**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'change'
-				currentContent = ''
-			} else if (trimmed.includes('**Investment**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'investment'
-				currentContent = ''
-			} else if (trimmed.includes('**Benefits**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'benefits'
-				currentContent = ''
-			} else if (trimmed.includes('**Overall Alignment**')) {
-				if (currentSection) summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-				currentSection = 'overallAlignment'
-				currentContent = ''
-			} else if (currentSection && trimmed && !trimmed.startsWith('*') && !trimmed.startsWith('-')) {
-				currentContent += trimmed + ' '
-			}
-		}
-
-		// Add the last section
-		if (currentSection) {
-			summary[currentSection as keyof AlignmentSummary] = currentContent.trim()
-		}
-
-		return summary as AlignmentSummary
+		// Parse the structured JSON response
+		const summary = JSON.parse(content) as AlignmentSummary
+		return summary
 	} catch (error) {
 		console.error('Error generating OpenAI summary:', error)
 		throw new Error('Failed to generate alignment summary')
